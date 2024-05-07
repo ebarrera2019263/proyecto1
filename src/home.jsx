@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { supabase } from '../supabaseClient'; 
 
 const navigation = [
   { name: 'Product', href: '#' },
@@ -9,13 +10,41 @@ const navigation = [
   { name: 'Company', href: '#' },
 ];
 
-export default function Example() {
+export default function CombinedComponent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    async function fetchPosts() {
+      try {
+        let { data: posts, error } = await supabase
+          .from('posts')
+          .select('*');
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (posts) {
+          console.log('Posts loaded:', posts);
+          setPosts(posts);
+        } else {
+          console.log('No posts found');
+        }
+      } catch (error) {
+        console.error('Error fetching posts:', error.message);
+      }
+    }
+  
+    fetchPosts();
+  }, []);
+  
 
   return (
     <div className="bg-white">
+      {/* Aquí comienza el primer componente */}
       <header className="absolute inset-x-0 top-0 z-50">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
           <div className="flex lg:flex-1">
             <a href="#" className="-m-1.5 p-1.5">
               <span className="sr-only">Your Company</span>
@@ -95,6 +124,8 @@ export default function Example() {
             </div>
           </Dialog.Panel>
         </Dialog>
+      
+        {/* Contenido del diálogo para el menú móvil */}
       </header>
       <main>
         <div className="relative isolate">
@@ -210,7 +241,61 @@ export default function Example() {
             </div>
           </div>
         </div>
-      </main>
+        <div className="bg-white py-24 sm:py-32">
+         <div className="bg-white py-24 sm:py-32">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">From the blog</h2>
+          <p className="mt-2 text-lg leading-8 text-gray-600">
+            Learn how to grow your business with our expert advice.
+          </p>
+        </div>
+        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+        {posts.map((post) => (
+  <article key={post.id} className="flex flex-col items-start justify-between">
+    <div className="relative w-full">
+      {post.imageUrl ? (
+        <img
+          src={post.imageUrl}
+          alt={post.title || "Default Title"}
+          className="aspect-[16/9] w-full rounded-2xl bg-gray-100 object-cover sm:aspect-[2/1] lg:aspect-[3/2]"
+        />
+      ) : (
+        <div className="aspect-[16/9] w-full rounded-2xl bg-gray-100 sm:aspect-[2/1] lg:aspect-[3/2] flex items-center justify-center">
+          <span>No Image Available</span>
+        </div>
+      )}
     </div>
-  )
-} 
+    <div className="max-w-xl">
+      <div className="mt-8 flex items-center gap-x-4 text-xs">
+        {post.date ? (
+          <time dateTime={post.date} className="text-gray-500">
+            {new Date(post.date).toLocaleDateString()}
+          </time>
+        ) : (
+          <span className="text-gray-500">No Date Provided</span>
+        )}
+      </div>
+      <div className="group relative">
+        <h3 className="mt-3 text-lg font-semibold leading-6 text-gray-900">
+          {post.title || "Untitled Post"}
+        </h3>
+        <p className="mt-5 line-clamp-3 text-sm leading-6 text-gray-600">
+          {post.description || "No description available."}
+        </p>
+      </div>
+    </div>
+  </article>
+))}
+        </div>
+      </div>
+    </div>
+        </div>
+      </main>
+
+
+      {/* Aquí comienza el segundo componente */}
+      
+    </div>
+  );
+}
