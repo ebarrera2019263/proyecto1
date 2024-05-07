@@ -1,17 +1,17 @@
 import { useState } from 'react';
-import { supabase } from '../supabaseClient'; // Asegúrate de que la ruta a tu cliente de Supabase es correcta
+import { supabase } from '../supabaseClient'; 
 
 export default function Register() {
   const [name, setName] = useState('');
   const [lastname, setLastname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('usuario'); // Valor predeterminado es 'usuario'
+  const [role, setRole] = useState('usuario'); 
 
   const handleSubmit = async (event) => {
     event.preventDefault();
   
-    // Log de los valores que serán enviados a la base de datos
+
     console.log('Enviando datos:', { email, password, role, name, lastname });
   
     try {
@@ -19,11 +19,11 @@ export default function Register() {
         { email, password, role, name, lastname }
       ]);
   
-      if (error) throw error;  // Si hay error, lanza una excepción para capturarla luego
+      if (error) throw error;  
   
       console.log('Usuario registrado:', data);
       alert('Usuario registrado con éxito!');
-      // Limpiar formularios o manejar navegación
+      
     } catch (error) {
       console.error('Error en el registro:', error);
       alert('Error en el registro: ' + error.message);
