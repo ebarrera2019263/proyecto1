@@ -1,35 +1,33 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient'; 
+import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
+  const navigate = useNavigate(); // Hook para la navegación
   const [name, setName] = useState('');
   const [lastname, setLastname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('usuario'); 
+  const [role, setRole] = useState('usuario');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-  
-
     console.log('Enviando datos:', { email, password, role, name, lastname });
-  
+
     try {
       const { data, error } = await supabase.from('users').insert([
         { email, password, role, name, lastname }
       ]);
-  
-      if (error) throw error;  
-  
+
+      if (error) throw error;
       console.log('Usuario registrado:', data);
       alert('Usuario registrado con éxito!');
-      
+      navigate('/login'); // Redirigir al usuario a Login después del registro
     } catch (error) {
       console.error('Error en el registro:', error);
       alert('Error en el registro: ' + error.message);
     }
   };
-  
   
   
 

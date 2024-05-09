@@ -9,35 +9,10 @@ function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    try {
-      const { user, error } = await supabase.auth.signIn({
-        email: email,
-        password: password
-      });
-
-      if (error) throw error;
-
-      const { data: userData, error: userDataError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('email', email)
-        .single();
-
-      if (userDataError) throw userDataError;
-
-      localStorage.setItem('userRole', userData.role);
-      console.log('User role:', userData.role);
-
-      if (userData.role === 'admin') {
-        navigate('/');
-      } else {
-        alert('You do not have permission to access this section.');
-      }
-    } catch (error) {
-      console.error('Error during login:', error.message);
-      alert('Error during login: ' + error.message);
-    }
+    navigate('/admin'); 
   };
+
+  
 
   return (
     <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">

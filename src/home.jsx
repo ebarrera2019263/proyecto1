@@ -38,11 +38,16 @@ export default function CombinedComponent() {
   };
 
   const handleCreateNewPost = () => {
-    setSelectedPost({ title: '', description: '', imageUrl: '', date: new Date().toISOString().slice(0, 10) });
+    const today = new Date();
+    const offset = today.getTimezoneOffset();
+    const localDate = new Date(today.getTime() - (offset * 60 * 1000));
+    const dateToUse = localDate.toISOString().slice(0, 10);
+    
+    setSelectedPost({ title: '', description: '', imageUrl: '', date: dateToUse });
     setIsEditMode(false);
     setIsModalOpen(true);
   };
-
+  
   const handleUpdatePost = async (event) => {
     event.preventDefault();
     try {
