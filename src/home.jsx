@@ -1,73 +1,96 @@
-  import { useState, useEffect, Fragment } from 'react';
-  import { Dialog, Transition } from '@headlessui/react';
-  import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-  import { supabase } from '../supabaseClient';
+import { useState, useEffect, Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { supabase } from '../supabaseClient';
 
-  const navigation = [
-    { name: 'Product', href: '#' },
-    { name: 'Features', href: '#' },
-    { name: 'Marketplace', href: '#' },
-    { name: 'Company', href: '#' },
-  ];
+const navigation = [
+  { name: 'Product', href: '#' },
+  { name: 'Features', href: '#' },
+  { name: 'Marketplace', href: '#' },
+  { name: 'Company', href: '#' },
+];
 
-  export default function CombinedComponent() {
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [posts, setPosts] = useState([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedPost, setSelectedPost] = useState(null);
-    
+export default function CombinedComponent() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
-    useEffect(() => {
-      async function fetchPosts() {
-        try {
-          let { data: posts, error } = await supabase.from('posts').select('*');
-          if (error) throw error;
-          setPosts(posts);
-        } catch (error) {
-          console.error('Error fetching posts:', error.message);
-        }
-      }
-      fetchPosts();
-    }, []);
+  useEffect(() => {
+    fetchPosts();
+  }, []);
 
-    const handleOpenModal = (post) => {
-      setSelectedPost(post);
-      setIsModalOpen(true);
-    };
+  async function fetchPosts() {
+    try {
+      let { data: posts, error } = await supabase.from('posts').select('*');
+      if (error) throw error;
+      setPosts(posts);
+    } catch (error) {
+      console.error('Error fetching posts:', error.message);
+    }
+  }
 
-    const handleUpdatePost = async (event) => {
-      event.preventDefault();
-      try {
-        const { data, error } = await supabase
-          .from('posts')
-          .update({ ...selectedPost })
-          .match({ id: selectedPost.id });
-        if (error) throw error;
-        fetchPosts(); // Reload the posts after update
-        setIsModalOpen(false); // Close the modal
-      } catch (error) {
-        console.error('Error updating post:', error.message);
-      }
-    };
+  const handleOpenModal = (post) => {
+    setSelectedPost(post);
+    setIsEditMode(true);
+    setIsModalOpen(true);
+  };
 
-    const handleDeletePost = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('posts')
-          .delete()
-          .match({ id: selectedPost.id });
-        if (error) throw error;
-        fetchPosts(); // Reload the posts after delete
-        setIsModalOpen(false); // Close the modal
-      } catch (error) {
-        console.error('Error deleting post:', error.message);
-      }
-    };
+  const handleCreateNewPost = () => {
+    setSelectedPost({ title: '', description: '', imageUrl: '', date: new Date().toISOString().slice(0, 10) });
+    setIsEditMode(false);
+    setIsModalOpen(true);
+  };
 
-    const handleChange = (event) => {
-      const { name, value } = event.target;
-      setSelectedPost((prev) => ({ ...prev, [name]: value }));
-    };
+  const handleUpdatePost = async (event) => {
+    event.preventDefault();
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .update({ ...selectedPost })
+        .match({ id: selectedPost.id });
+      if (error) throw error;
+      fetchPosts(); // Reload the posts after update
+      setIsModalOpen(false); // Close the modal
+    } catch (error) {
+      console.error('Error updating post:', error.message);
+    }
+  };
+
+  const handleCreatePost = async (event) => {
+    event.preventDefault();
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .insert({ ...selectedPost });
+      if (error) throw error;
+      fetchPosts(); // Reload the posts after creation
+      setIsModalOpen(false); // Close the modal
+    } catch (error) {
+      console.error('Error creating post:', error.message);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .delete()
+        .match({ id: selectedPost.id });
+      if (error) throw error;
+      fetchPosts(); // Reload the posts after delete
+      setIsModalOpen(false); // Close the modal
+    } catch (error) {
+      console.error('Error deleting post:', error.message);
+    }
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setSelectedPost((prev) => ({ ...prev, [name]: value }));
+  };
+
 
 
 
@@ -332,87 +355,86 @@
       </div>
           </div>
           <Transition.Root show={isModalOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-10" onClose={() => setIsModalOpen(false)}>
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-              >
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-              </Transition.Child>
-              <div className="fixed inset-0 overflow-y-auto">
-                <div className="flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-0">
-                  <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    enterTo="opacity-100 translate-y-0 sm:scale-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                    leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                  >
-                    <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white p-6 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                    <form onSubmit={handleUpdatePost}>
-    <Dialog.Title as="h3" className="text-lg leading-6 font-medium text-gray-900">
-      Edit Post
-    </Dialog.Title>
-    <div className="mt-2">
-      <p className="text-sm text-gray-500">
-        Update the post details below.
-      </p>
-    </div>
-    <div className="mt-4">
-      <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
-      <input
-        type="text"
-        name="title"
-        id="title"
-        value={selectedPost?.title}
-        onChange={handleChange}
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-      />
-    </div>
-    <div className="mt-4">
-      <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-      <textarea
-        name="description"
-        id="description"
-        rows={3}
-        value={selectedPost?.description}
-        onChange={handleChange}
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-      />
-    </div>
-    <div className="mt-5 sm:mt-6 space-x-3">
-      <button
-        type="submit"
-        className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-      >
-        Save
-      </button>
-      <button
-        type="button"
-        className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-        onClick={handleDeletePost}
-      >
-        Delete
-      </button>
-    </div>
-  </form>
-
-                    </Dialog.Panel>
-                  </Transition.Child>
-                </div>
+          <Dialog as="div" className="relative z-10" onClose={() => setIsModalOpen(false)}>
+            <div className="fixed inset-0 overflow-y-auto">
+              <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                  enterTo="opacity-100 translate-y-0 sm:scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                  leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                >
+                  <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white p-6 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                    <form onSubmit={isEditMode ? handleUpdatePost : handleCreatePost}>
+                      <Dialog.Title as="h3" className="text-lg leading-6 font-medium text-gray-900">
+                        {isEditMode ? 'Edit Post' : 'Create New Post'}
+                      </Dialog.Title>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">
+                          {isEditMode ? 'Update the post details below.' : 'Fill in the details for your new post.'}
+                        </p>
+                      </div>
+                      <div className="mt-4">
+                        <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
+                        <input
+                          type="text"
+                          name="title"
+                          id="title"
+                          value={selectedPost?.title}
+                          onChange={handleChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        />
+                      </div>
+                      <div className="mt-4">
+                        <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea
+                          name="description"
+                          id="description"
+                          rows={3}
+                          value={selectedPost?.description}
+                          onChange={handleChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        />
+                      </div>
+                      <div className="mt-4">
+                        <label htmlFor="image" className="block text-sm font-medium text-gray-700">Image URL</label>
+                        <input
+                          type="text"
+                          name="imageUrl"
+                          id="image"
+                          value={selectedPost?.imageUrl}
+                          onChange={handleChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        />
+                      </div>
+                      <div className="mt-5 sm:mt-6 space-x-3">
+                        <button
+                          type="submit"
+                          className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        >
+                          {isEditMode ? 'Save' : 'Add Post'}
+                        </button>
+                        {isEditMode && (
+                          <button
+                            type="button"
+                            className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                            onClick={handleDeletePost}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </form>
+                  </Dialog.Panel>
+                </Transition.Child>
               </div>
-            </Dialog>
-          </Transition.Root>
-          
-        </main>
-        
-      </div>
-    );
-  }
+            </div>
+          </Dialog>
+        </Transition.Root>
+      </main>
+    </div>
+  );
+}
